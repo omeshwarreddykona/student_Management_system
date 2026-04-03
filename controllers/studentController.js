@@ -19,12 +19,12 @@ export default {
             }
             else {
                 res.set({
-                    "limit": request.query.limit ? request.query.limit : 1,
-                    "page": request.query.page ? request.query.page : 1,
+                    "limit": req.query.limit ? req.query.limit : 1,
+                    "page": req.query.page ? req.query.page : 1,
                     "total_count": 0,
                     "total_pages": 0
                 });
-            res,json(result)
+            res.json(result)
             }
         }).catch(error =>{
             next(error)
