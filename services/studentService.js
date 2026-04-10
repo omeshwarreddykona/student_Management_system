@@ -34,51 +34,51 @@ export default {
             //     .is().not().oneOf(["password","Password123"]);
             //     let isvalid_password = Schema.validate(password);
             if (!name) {
-                throw {code:400 , message: "Please enter the name" }
+                throw { code: 400, message: "Please enter the name" }
             }
             if (!validator.isEmail(email)) {
-                 throw {code:400 , message: "Please enter the  valid email" }
+                throw { code: 400, message: "Please enter the  valid email" }
             }
             if (!roll_no) {
-                 throw {code:400 , message: "Please enter the roll number"}
-            }if (!course) {
-                 throw {code:400 , message: "Please enter the course"}
+                throw { code: 400, message: "Please enter the roll number" }
+            } if (!course) {
+                throw { code: 400, message: "Please enter the course" }
             }
-            if(!class_teacher){
-                 throw {code:400 , message:"Please the class teacher name"}
+            if (!class_teacher) {
+                throw { code: 400, message: "Please the class teacher name" }
             }
             // if (!password || !isvalid_password ) {
             //     return res.status(400).json({ success: false, message: "Please enter the valid password" })
             // }
-            if(!percentage){
-                throw {code:400 , message:"Please enter the percentage"}
+            if (!percentage) {
+                throw { code: 400, message: "Please enter the percentage" }
             }
             // if (password !== confirm_password) {
             //     return res.status(400).json({ success: false, message: "please enter the correct password" })
             // }
-        let  existingUser = await Student.findOne({roll_no:roll_no});
+            let existingUser = await Student.findOne({ roll_no: roll_no });
             if (existingUser) {
-                 return {code:400 ,  message: "The Student  is already exist" }
+                return { code: 400, message: "The Student  is already exist" }
             }
             // let hashpassword = await bcrypt.hash(password, 10);
             let data = {
                 name: name,
                 email: email,
                 roll_no: roll_no,
-                course:course,
-                class_teacher:class_teacher,
-                percentage:percentage,
-            //     password:hashpassword
+                course: course,
+                class_teacher: class_teacher,
+                percentage: percentage,
+                //     password:hashpassword
             };
             let signup = await Student.create(data);
-            if(signup){
-                return {code : 200,message:"Student registered Successfully"}
+            if (signup) {
+                return { code: 200, message: "Student registered Successfully" }
             }
         } catch (error) {
-            throw { code : 500 , message:error.message }
+            throw { code: 500, message: error.message }
         }
     },
- //  Student login 
+    //  Student login 
     // async Studentlogin(req, res) {
     //     try {
     //         const roll_no = req.body.roll_no;
@@ -100,87 +100,86 @@ export default {
     //         return res.status(400).json({ success: false, message: "Something went wrong" })
     //     }
     // },
-     // get all students 
+    // get all students 
 
     async getAllstudents(query) {
         try {
             const page = parseInt(query.page) || 1;
-            const limit = parseInt(query.limit) || 10;
-
+            const limit = parseInt(query.limit) || 5;
             const skip = (page - 1) * limit;
-
             const search = query.search || "";
-
             const filter = { deleted_at: { $eq: null } };
             if (search) {
                 filter.$or = [
                     { name: { $regex: search, $options: "i" } },
-                    { email: { $regex: search, $options: "i" } }
+                    { email: { $regex: search, $options: "i" } },
+                    { course: { $regex: search, $options: "i" } },
+                    { class_teacher: { $regex: search, $options: "i" } }
                 ]
             };
-         const result = await Student.aggregate([
+            const result = await Student.aggregate([
 
-        { $match: filter },
-        { $group: { _id: null, docs: { $push: "$$ROOT" }, totalcount: { $sum: 1 } } },
-        { $unwind: '$docs' },
-        { $sort: { "docs._id": -1 } },
-        { $skip: skip },
-        { $limit: limit },
-        {
-          $group: {
-            _id: null,
-            docs: { $push: '$docs' },
-            headers: {
-              $first: {
-                total_count: '$totalcount',
-                total_pages: {
-                  $ceil: {
-                    $divide: ['$totalcount', limit]
-                  }
-                },
-                current_page: page,
-                limit: limit
-              }
-            }
-          }
-        }
-      ]).exec();
-      return result;
+                { $match: filter },
+                { $group: { _id: null, docs: { $push: "$$ROOT" }, totalcount: { $sum: 1 } } },
+                { $unwind: '$docs' },
+                { $sort: { "docs._id": -1 } },
+                { $skip: skip },
+                { $limit: limit },
+                {
+                    $group: {
+                        _id: null,
+                        docs: { $push: '$docs' },
+                        headers: {
+                            $first: {
+                                total_count: '$totalcount',
+                                total_pages: {
+                                    $ceil: {
+                                        $divide: ['$totalcount', limit]
+                                    }
+                                },
+                                current_page: page,
+                                limit: limit
+                            }
+                        }
+                    }
+                }
+            ]).exec();
+            return result;
         } catch (error) {
-            throw { code : 500, message: error.message }
+            throw { code: 500, message: error.message }
         }
     },
 
     // get student by id
 
-       async getStudentbyId(params) {
+    async getStudentbyId(params) {
         try {
             const id = params.id;
             if (!ObjectId.isValid(id)) {
-                throw {code : 400, message: "Invaild  Student Id" }
+                throw { code: 400, message: "Invaild  Student Id" }
             }
             let getbyId = await Student.findOne({ _id: new ObjectId(id) });
             if (!getbyId) {
-                throw { code : 400 , message: "Student Id not found!" }
+                throw { code: 400, message: "Student Id not found!" }
             }
             if (getbyId) {
-                return {code : 200, message: "we fetched the student data by Id", data: getbyId }
+                return { code: 200, message: "we fetched the student data by Id", data: getbyId }
             }
         } catch (error) {
-            throw {code : 500 , message: "Something went wrong" }
+            throw { code: 500, message: "Something went wrong" }
         }
     },
 
     // Update student by id
 
-    async updateStudentById(params,body) {
+    async updateStudentById(params, body) {
         try {
             const id = params.id;
             let findstudent = await Student.findOne({ _id: new ObjectId(id) });
             if (findstudent) {
                 let update = await Student.updateOne({ _id: new ObjectId(id) }, { $set: body });
                 if (update) {
-                    return { code : 200, message: "Data updated Successfully" }
+                    return { code: 200, message: "Data updated Successfully" }
                 }
             }
         } catch (error) {
@@ -212,13 +211,13 @@ export default {
             const id = params.id;
             let findstudent = await Student.findOne({ _id: new ObjectId(id) });
             if (findstudent) {
-                let update = await Student.updateOne({ _id: new ObjectId(id) }, { $set: { deleted_at: new Date } })
+                let update = await Student.updateOne({ _id: new ObjectId(id) }, { $set: { deleted_at: new Date() } })
                 if (update) {
-                    return { code : 200, message: "Data deleted successfully" }
+                    return { code: 200, message: "Data deleted successfully" }
                 }
             }
         } catch (error) {
-            throw {code:500, message: "some thing went wrong" }
+            throw { code: 500, message: "some thing went wrong" }
         }
     }
 }
